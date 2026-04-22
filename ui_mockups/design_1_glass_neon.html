@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>INSPECT-OS · Glass Neon</title>
+<meta name="viewport" content="width=1440,initial-scale=1">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#05070f;
+    --bg-2:#0a0f20;
+    --surface:rgba(18,24,48,.55);
+    --surface-hi:rgba(30,38,72,.65);
+    --border:rgba(94,116,189,.25);
+    --border-hi:rgba(120,150,230,.55);
+    --text:#e7ecff;
+    --text-dim:#8a94c2;
+    --text-mute:#5d6693;
+    --cy:#4be9ff;      /* cyan */
+    --mg:#ff4bd8;      /* magenta */
+    --pp:#8a5bff;      /* purple */
+    --grn:#2cffa5;
+    --red:#ff4e74;
+    --amb:#ffc44c;
+    --ring:0 0 0 1px rgba(255,255,255,.04) inset;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:Inter,"Segoe UI",system-ui,sans-serif;
+    color:var(--text);
+    background:var(--bg);
+    background-image:
+      radial-gradient(1200px 600px at 85% -10%, rgba(138,91,255,.20), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(75,233,255,.18), transparent 60%),
+      radial-gradient(800px 400px at 50% 50%, rgba(255,75,216,.08), transparent 70%);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* Animated scanlines + grid */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size:40px 40px;
+    mask-image:radial-gradient(ellipse at 50% 40%, black 55%, transparent 85%);
+    z-index:0;
+  }
+  .app{display:grid;grid-template-rows:72px 1fr 170px;height:100vh;position:relative;z-index:1}
+
+  /* ===== HEADER ===== */
+  header{
+    display:flex;align-items:center;gap:18px;padding:0 22px;
+    background:linear-gradient(90deg, rgba(10,15,32,.85), rgba(20,26,64,.65));
+    border-bottom:1px solid var(--border);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+  }
+  .logo{
+    width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+    background:conic-gradient(from 210deg, var(--cy), var(--pp), var(--mg), var(--cy));
+    box-shadow:0 0 24px rgba(75,233,255,.35), inset 0 0 12px rgba(0,0,0,.4);
+    position:relative;
+  }
+  .logo::after{
+    content:"";position:absolute;inset:3px;border-radius:9px;background:#0a0f20;
+  }
+  .logo svg{position:relative;z-index:1}
+  .brand{display:flex;flex-direction:column;line-height:1.15}
+  .brand h1{
+    margin:0;font-size:20px;font-weight:900;letter-spacing:3px;
+    background:linear-gradient(90deg, #ffffff, #b5dcff 70%, #ffa9f5);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .brand small{color:var(--text-mute);letter-spacing:4px;font-size:10px;font-weight:600}
+  .pill{
+    padding:6px 14px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:1.5px;
+    border:1px solid currentColor;background:rgba(75,233,255,.08);color:var(--cy);
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor;animation:pulse 1.6s infinite}
+  .clock{
+    font-family:"JetBrains Mono",monospace;font-weight:700;letter-spacing:3px;
+    font-size:18px;color:#fff;padding:6px 12px;border-radius:10px;
+    background:rgba(255,255,255,.04);border:1px solid var(--border);
+  }
+  .spacer{flex:1}
+
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  @keyframes sweep{0%{transform:translateX(-100%)}100%{transform:translateX(300%)}}
+
+  /* ===== MAIN GRID ===== */
+  main{display:grid;grid-template-columns:340px 1fr 420px;gap:14px;padding:14px;min-height:0}
+  .rail, .center, .right{min-height:0;display:flex;flex-direction:column;gap:12px}
+  .center{gap:10px}
+  .rail{overflow-y:auto;padding-right:4px}
+  .rail::-webkit-scrollbar{width:8px}
+  .rail::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:4px}
+
+  /* ===== GLASS CARDS ===== */
+  .card{
+    position:relative;border-radius:18px;padding:16px;
+    background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015)), var(--surface);
+    border:1px solid var(--border);
+    backdrop-filter:blur(18px) saturate(160%);
+    -webkit-backdrop-filter:blur(18px) saturate(160%);
+    box-shadow:var(--ring), 0 10px 40px rgba(0,0,0,.35);
+  }
+  .card::before{
+    content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    background:linear-gradient(135deg, rgba(255,255,255,.08), transparent 40%);
+    mask:linear-gradient(180deg, black, transparent 70%);
+  }
+  .card h3{
+    margin:0 0 12px;font-size:10px;font-weight:800;letter-spacing:2.5px;color:var(--text-dim);
+    text-transform:uppercase;
+  }
+  .card-accent{
+    position:absolute;left:16px;top:-1px;height:2px;width:52px;border-radius:2px;
+    background:linear-gradient(90deg, var(--cy), var(--pp));box-shadow:0 0 12px var(--cy);
+  }
+
+  /* ===== LEFT RAIL ===== */
+  .row{display:flex;gap:8px}
+  .btn{
+    flex:1;padding:10px 12px;border-radius:11px;border:1px solid var(--border);
+    background:rgba(255,255,255,.03);color:var(--text);font-weight:700;font-size:12px;
+    cursor:pointer;transition:.2s;letter-spacing:.5px;
+  }
+  .btn:hover{background:rgba(255,255,255,.06);border-color:var(--border-hi)}
+  .btn.cyan{background:linear-gradient(180deg, rgba(75,233,255,.25), rgba(75,233,255,.12));border-color:rgba(75,233,255,.55);color:#d6f8ff}
+  .btn.cyan:hover{box-shadow:0 0 16px rgba(75,233,255,.35)}
+  .btn.ghost{background:transparent}
+  .btn.big{padding:14px;font-size:13px;letter-spacing:1.5px}
+  .btn.primary{
+    background:linear-gradient(180deg, rgba(44,255,165,.22), rgba(44,255,165,.08));
+    border-color:rgba(44,255,165,.55);color:#c8ffe3;
+  }
+  .btn.primary:hover{box-shadow:0 0 18px rgba(44,255,165,.4)}
+  .btn.danger{
+    background:linear-gradient(180deg, rgba(255,78,116,.22), rgba(255,78,116,.08));
+    border-color:rgba(255,78,116,.55);color:#ffd3de;
+  }
+  .btn.warn{
+    background:linear-gradient(180deg, rgba(255,196,76,.22), rgba(255,196,76,.08));
+    border-color:rgba(255,196,76,.55);color:#ffe8bd;
+  }
+  .select{
+    flex:1;padding:10px 12px;border-radius:11px;background:rgba(255,255,255,.03);
+    color:var(--text);border:1px solid var(--border);font-size:12px;font-weight:600;
+    appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--text-dim) 50%),linear-gradient(135deg,var(--text-dim) 50%,transparent 50%);
+    background-position:calc(100% - 16px) 50%,calc(100% - 12px) 50%;
+    background-size:4px 4px,4px 4px;background-repeat:no-repeat;
+  }
+  .chip-conn{
+    margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:8px;border-radius:10px;border:1px solid rgba(255,78,116,.35);
+    background:rgba(255,78,116,.08);color:var(--red);font-size:11px;font-weight:700;letter-spacing:1.5px;
+  }
+
+  /* HW indicators grid */
+  .hw-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .hw{
+    display:flex;align-items:center;gap:8px;padding:10px;border-radius:12px;
+    background:rgba(5,8,20,.55);border:1px solid var(--border);
+  }
+  .hw .led{width:10px;height:10px;border-radius:50%;background:var(--text-mute);position:relative}
+  .hw .led.on   {background:var(--grn); box-shadow:0 0 10px var(--grn)}
+  .hw .led.warn {background:var(--amb); box-shadow:0 0 10px var(--amb)}
+  .hw .led.err  {background:var(--red); box-shadow:0 0 10px var(--red)}
+  .hw .led.on::after,.hw .led.warn::after,.hw .led.err::after{
+    content:"";position:absolute;inset:-4px;border-radius:50%;
+    background:currentColor;opacity:.25;animation:pulse 2s infinite;
+  }
+  .hw span{font-size:11px;font-weight:700;letter-spacing:.6px}
+
+  /* Slider */
+  .slider-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .slider-val{
+    font-family:"JetBrains Mono",monospace;font-size:28px;font-weight:800;
+    background:linear-gradient(90deg, var(--cy), var(--pp));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .slider{
+    -webkit-appearance:none;width:100%;height:6px;border-radius:3px;
+    background:linear-gradient(90deg, var(--cy) 0%, var(--cy) 70%, rgba(255,255,255,.08) 70%, rgba(255,255,255,.08) 100%);
+    outline:none;
+  }
+  .slider::-webkit-slider-thumb{
+    -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+    background:radial-gradient(circle,#fff 0,var(--cy) 60%);
+    border:2px solid #0a0f20;box-shadow:0 0 12px var(--cy);
+  }
+  .scale{display:flex;justify-content:space-between;width:100%;color:var(--text-mute);font-size:9px}
+
+  /* Stat tiles */
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .stat{
+    padding:12px;border-radius:14px;
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
+    border:1px solid var(--border);
+  }
+  .stat .n{font-size:24px;font-weight:900;line-height:1}
+  .stat .l{margin-top:4px;font-size:9px;letter-spacing:2px;color:var(--text-dim);font-weight:800}
+  .stat.c .n{color:var(--cy)} .stat.g .n{color:var(--grn)}
+  .stat.r .n{color:var(--red)} .stat.p .n{color:var(--mg)}
+
+  /* ===== CENTER (Camera) ===== */
+  .viewport{
+    position:relative;flex:1;min-height:0;border-radius:18px;overflow:hidden;
+    background:
+      radial-gradient(ellipse at top, rgba(75,233,255,.10), transparent 60%),
+      linear-gradient(180deg,#06091a,#03050e);
+    border:1px solid var(--border);
+    box-shadow:0 0 0 1px rgba(75,233,255,.15), 0 20px 60px rgba(0,0,0,.6);
+  }
+  .vp-hud{
+    position:absolute;inset:12px 12px auto 12px;display:flex;align-items:center;gap:10px;
+    font-size:10px;font-weight:800;letter-spacing:2.5px;color:var(--text-dim);z-index:3;
+  }
+  .vp-hud .live{color:var(--red);display:flex;align-items:center;gap:6px}
+  .vp-hud .live::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor;animation:pulse 1s infinite}
+  .vp-hud .coords{color:var(--cy)}
+  .vp-corners{position:absolute;inset:18px;pointer-events:none;z-index:2}
+  .vp-corners::before,.vp-corners::after,.vp-corners div::before,.vp-corners div::after{
+    content:"";position:absolute;width:22px;height:22px;border:2px solid var(--cy);opacity:.8;
+  }
+  .vp-corners::before{top:0;left:0;border-right:0;border-bottom:0}
+  .vp-corners::after{top:0;right:0;border-left:0;border-bottom:0}
+  .vp-corners div::before{bottom:0;left:0;border-right:0;border-top:0}
+  .vp-corners div::after{bottom:0;right:0;border-left:0;border-top:0}
+  .vp-center{
+    position:absolute;inset:0;display:grid;place-items:center;color:var(--text-mute);
+    font-size:13px;letter-spacing:3px;z-index:1;
+  }
+  .vp-center .fake-frame{
+    width:60%;max-width:680px;aspect-ratio:16/9;border-radius:16px;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0 1px, transparent 1px 20px),
+      repeating-linear-gradient(0deg,  rgba(255,255,255,.02) 0 1px, transparent 1px 20px),
+      radial-gradient(ellipse at center, rgba(75,233,255,.10), transparent 60%);
+    border:1px dashed rgba(75,233,255,.35);display:grid;place-items:center;gap:10px;
+  }
+  .vp-center h2{margin:0;font-size:22px;font-weight:900;letter-spacing:3px;color:#d6f8ff}
+  .vp-center p{margin:0;color:var(--text-mute)}
+  .sweep{
+    position:absolute;top:0;bottom:0;width:140px;pointer-events:none;z-index:2;
+    background:linear-gradient(90deg, transparent, rgba(75,233,255,.18), transparent);
+    animation:sweep 3.2s linear infinite;filter:blur(2px);
+  }
+  /* pill detections */
+  .det{position:absolute;border:2px solid var(--grn);border-radius:6px;font:700 10px "JetBrains Mono",monospace;color:#fff;z-index:3}
+  .det::before{content:attr(data-label);position:absolute;bottom:100%;left:-2px;background:var(--grn);color:#002;padding:2px 6px;border-radius:4px 4px 0 0}
+  .det.bad{border-color:var(--red)}
+  .det.bad::before{background:var(--red);color:#fff}
+
+  /* Progress bar under viewport */
+  .progress{
+    height:6px;border-radius:3px;background:rgba(255,255,255,.05);overflow:hidden;position:relative;
+  }
+  .progress > span{
+    position:absolute;left:0;top:0;bottom:0;width:62%;
+    background:linear-gradient(90deg, var(--pp), var(--cy), var(--mg));
+    box-shadow:0 0 12px var(--cy);
+  }
+
+  /* ===== RIGHT SIDE ===== */
+  .tabs{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px}
+  .tab{
+    flex:1;padding:9px;border-radius:10px;text-align:center;font-size:11px;font-weight:800;
+    letter-spacing:2px;color:var(--text-dim);cursor:pointer;transition:.2s;
+  }
+  .tab.active{
+    background:linear-gradient(180deg, rgba(75,233,255,.22), rgba(138,91,255,.12));
+    color:#fff;box-shadow:0 0 12px rgba(75,233,255,.25);border:1px solid var(--border-hi);
+  }
+
+  /* Result card */
+  .result{
+    text-align:center;padding:24px 16px;border-radius:18px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(400px 120px at 50% 0%, rgba(75,233,255,.18), transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+    border:1px solid var(--border);
+  }
+  .result .tag{font-size:10px;letter-spacing:2.5px;color:var(--text-dim);font-weight:800}
+  .result .big{
+    font-size:56px;font-weight:900;letter-spacing:3px;line-height:1;margin:10px 0 8px;
+    background:linear-gradient(90deg, var(--cy), var(--mg));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 24px rgba(75,233,255,.25);
+  }
+  .result.pass .big{background:linear-gradient(90deg, var(--grn), var(--cy));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .result.fail .big{background:linear-gradient(90deg, var(--red), var(--amb));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .severity{
+    display:inline-block;padding:5px 14px;border-radius:12px;font-size:10px;letter-spacing:2px;
+    color:var(--amb);border:1px solid var(--amb);background:rgba(255,196,76,.08);font-weight:800;
+  }
+
+  /* Cycle ring */
+  .ring-wrap{display:grid;place-items:center;padding:10px}
+  .ring{position:relative;width:168px;height:168px}
+  .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+  .ring .label{
+    position:absolute;inset:0;display:grid;place-items:center;
+    font-family:"JetBrains Mono",monospace;font-weight:800;
+  }
+  .ring .label .v{font-size:28px;color:#fff}
+  .ring .label .s{font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-top:4px}
+
+  /* HW feedback */
+  .feedback{
+    font-family:"JetBrains Mono",monospace;font-size:11px;color:#9fd1ff;
+    padding:10px;border-radius:10px;background:rgba(5,8,20,.55);border:1px solid var(--border);
+  }
+
+  /* ===== FOOTER LOG ===== */
+  footer{padding:0 14px 14px}
+  .log-card{
+    height:160px;border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;
+    background:linear-gradient(180deg, rgba(5,8,20,.85), rgba(5,8,20,.6));
+    border:1px solid var(--border);
+  }
+  .log-head{display:flex;justify-content:space-between;align-items:center}
+  .log-head h4{margin:0;font-size:10px;letter-spacing:2.5px;color:var(--text-dim);font-weight:800}
+  .log-head span{font-size:10px;color:var(--text-mute);font-family:"JetBrains Mono",monospace}
+  .log{
+    flex:1;overflow:auto;font-family:"JetBrains Mono",monospace;font-size:11px;line-height:1.7;
+    padding:6px 8px;border-radius:8px;background:rgba(0,0,0,.35);
+  }
+  .log .t{color:var(--text-mute)}
+  .log .ok{color:var(--grn)} .log .bad{color:var(--red)}
+  .log .hi{color:var(--cy)}  .log .w{color:var(--amb)}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============= HEADER ============= -->
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#4be9ff" stroke-width="2.2">
+        <circle cx="12" cy="12" r="3.5"/>
+        <circle cx="12" cy="12" r="8" stroke-dasharray="4 3" opacity=".7"/>
+      </svg>
+    </div>
+    <div class="brand">
+      <h1>INSPECT-OS</h1>
+      <small>BLISTER PACK VISION INSPECTION</small>
+    </div>
+    <div class="spacer"></div>
+    <div class="pill" style="color:var(--cy)"><span class="dot"></span>INSPECTING</div>
+    <div class="clock" id="clock">14 : 32 : 07</div>
+  </header>
+
+  <!-- ============= MAIN ============= -->
+  <main>
+    <!-- LEFT RAIL -->
+    <aside class="rail">
+      <section class="card"><span class="card-accent"></span>
+        <h3>Arduino Connection</h3>
+        <div class="row">
+          <select class="select">
+            <option>COM3 — Arduino Uno R3</option>
+            <option>COM4 — USB Serial</option>
+          </select>
+          <button class="btn ghost" title="Refresh">⟳</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn cyan">CONNECT</button>
+          <button class="btn" disabled>DISCONNECT</button>
+        </div>
+        <div class="chip-conn">● DISCONNECTED</div>
+      </section>
+
+      <section class="card"><span class="card-accent"></span>
+        <h3>System Controls</h3>
+        <button class="btn big primary">▶   START</button>
+        <div style="height:8px"></div>
+        <button class="btn big danger">■   STOP</button>
+        <div style="height:8px"></div>
+        <button class="btn big warn">⟳   TEST SERVO</button>
+      </section>
+
+      <section class="card"><span class="card-accent"></span>
+        <h3>Hardware Status</h3>
+        <div class="hw-grid">
+          <div class="hw"><span class="led on"></span><span>ARDUINO</span></div>
+          <div class="hw"><span class="led on"></span><span>CAMERA</span></div>
+          <div class="hw"><span class="led warn"></span><span>MOTOR</span></div>
+          <div class="hw"><span class="led"></span><span>SERVO</span></div>
+        </div>
+      </section>
+
+      <section class="card"><span class="card-accent"></span>
+        <h3>Belt Speed</h3>
+        <div class="slider-wrap">
+          <div class="slider-val">70%</div>
+          <input type="range" min="0" max="100" value="70" class="slider">
+          <div class="scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+        </div>
+      </section>
+
+      <section class="card"><span class="card-accent"></span>
+        <h3>Run Statistics</h3>
+        <div class="stats">
+          <div class="stat c"><div class="n">128</div><div class="l">TOTAL</div></div>
+          <div class="stat g"><div class="n">121</div><div class="l">PASSED</div></div>
+          <div class="stat r"><div class="n">7</div><div class="l">FAILED</div></div>
+          <div class="stat p"><div class="n">94.5%</div><div class="l">YIELD</div></div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- CENTER -->
+    <section class="center">
+      <div class="viewport">
+        <div class="vp-hud">
+          <span>LIVE VISION FEED</span>
+          <span style="flex:1"></span>
+          <span class="coords">1920 × 1080 · 30 FPS</span>
+          <span class="live">● REC</span>
+        </div>
+        <div class="vp-corners"><div></div></div>
+        <div class="sweep"></div>
+        <div class="vp-center">
+          <div class="fake-frame">
+            <h2>SCANNING SHEET</h2>
+            <p>Pills: 10 / 10  ·  Missing: 0  ·  Confidence 0.94</p>
+            <!-- simulated detections -->
+            <div class="det" data-label="pill 0.96"     style="left:12%;top:30%;width:60px;height:42px"></div>
+            <div class="det" data-label="pill 0.94"     style="left:30%;top:30%;width:60px;height:42px"></div>
+            <div class="det" data-label="pill 0.92"     style="left:48%;top:30%;width:60px;height:42px"></div>
+            <div class="det" data-label="pill 0.95"     style="left:66%;top:30%;width:60px;height:42px"></div>
+            <div class="det bad" data-label="missing 0.89" style="left:48%;top:60%;width:60px;height:42px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="progress"><span></span></div>
+    </section>
+
+    <!-- RIGHT -->
+    <aside class="right">
+      <div class="tabs">
+        <div class="tab active">LIVE</div>
+        <div class="tab">DASHBOARD</div>
+        <div class="tab">REPORTS</div>
+      </div>
+
+      <section class="card result pass"><span class="card-accent"></span>
+        <div class="tag">INSPECTION RESULT</div>
+        <div class="big">PASS</div>
+        <div class="severity">SEVERITY · OK</div>
+      </section>
+
+      <section class="card"><span class="card-accent"></span>
+        <h3 style="text-align:center">Cycle State</h3>
+        <div class="ring-wrap">
+          <div class="ring">
+            <svg viewBox="0 0 100 100">
+              <defs>
+                <linearGradient id="gcy" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%"  stop-color="#8a5bff"/>
+                  <stop offset="50%" stop-color="#4be9ff"/>
+                  <stop offset="100%" stop-color="#ff4bd8"/>
+                </linearGradient>
+              </defs>
+              <circle cx="50" cy="50" r="44" stroke="rgba(255,255,255,.08)" stroke-width="8" fill="none"/>
+              <circle cx="50" cy="50" r="44" stroke="url(#gcy)" stroke-width="8" fill="none"
+                      stroke-linecap="round" stroke-dasharray="276" stroke-dashoffset="83"/>
+            </svg>
+            <div class="label">
+              <div><div class="v">2.3s</div><div class="s">INSPECTING</div></div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center;letter-spacing:2px;font-size:11px;font-weight:800;color:var(--cy)">INSPECTING — 5s</div>
+      </section>
+
+      <section class="card"><span class="card-accent"></span>
+        <h3>Hardware Feedback</h3>
+        <div class="feedback">[14:32:07]  Motor ON · flap CLOSED · heartbeat OK</div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- ============= FOOTER LOG ============= -->
+  <footer>
+    <div class="log-card">
+      <div class="log-head">
+        <h4>SYSTEM LOG</h4>
+        <span id="logcount">7 events</span>
+      </div>
+      <div class="log">
+        <div><span class="t">[14:31:45]</span> <span class="ok">Arduino connected on COM3</span></div>
+        <div><span class="t">[14:31:46]</span> <span class="hi">Arduino: READY</span></div>
+        <div><span class="t">[14:31:50]</span> <span class="hi">Camera opened — place sheet under camera to begin</span></div>
+        <div><span class="t">[14:31:58]</span> <span class="hi">Sheet detected — 5 second inspection started</span></div>
+        <div><span class="t">[14:32:03]</span> <span class="ok">PASS [OK] — motor ON for 10s</span></div>
+        <div><span class="t">[14:32:05]</span> <span class="w">⚠ Minor speed drift — auto-corrected</span></div>
+        <div><span class="t">[14:32:07]</span> <span class="hi">Cycle complete — ready</span></div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // Simple live clock
+  const pad = n => n.toString().padStart(2,"0");
+  const c = document.getElementById("clock");
+  setInterval(() => {
+    const d = new Date();
+    c.textContent = pad(d.getHours()) + " : " + pad(d.getMinutes()) + " : " + pad(d.getSeconds());
+  }, 1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>INSPECT-OS · UI Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e1a; --card:#141a2e; --text:#e6ebff; --dim:#8b93b7;
+    --brand:#4ea1ff; --accent:#9b6bff; --border:#242c48;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;color:var(--text);
+    background:radial-gradient(1000px 600px at 80% -10%, rgba(155,107,255,.2), transparent 60%),
+               radial-gradient(800px 400px at -10% 110%, rgba(78,161,255,.18), transparent 60%),
+               var(--bg);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:60px 24px}
+  h1{font-size:36px;margin:0 0 8px;letter-spacing:-.5px;font-weight:900}
+  .sub{color:var(--dim);font-size:15px;max-width:640px;line-height:1.6}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:40px}
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;
+    transition:transform .2s,border-color .2s;text-decoration:none;color:inherit;display:block;
+  }
+  .card:hover{transform:translateY(-4px);border-color:var(--brand)}
+  .preview{
+    height:220px;
+    background:linear-gradient(135deg, rgba(78,161,255,.2), rgba(155,107,255,.25));
+    display:grid;place-items:center;font-size:60px;
+  }
+  .p2{background:linear-gradient(135deg,#e6ebff,#9fb7ff)}
+  .meta{padding:22px}
+  .tag{
+    display:inline-block;font-size:10px;letter-spacing:2px;font-weight:800;padding:4px 10px;
+    border-radius:999px;background:rgba(78,161,255,.15);color:var(--brand);margin-bottom:10px;
+  }
+  h3{margin:0 0 8px;font-size:20px;font-weight:800}
+  p{margin:0;color:var(--dim);font-size:14px;line-height:1.6}
+  .footer{margin-top:40px;color:var(--dim);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>INSPECT-OS · UI Mockups</h1>
+  <p class="sub">Two web-rendered design directions for the blister pack inspection app. Click a card to open the full-screen design in Chrome.</p>
+
+  <div class="grid">
+    <a class="card" href="design_1_glass_neon.html">
+      <div class="preview">◉</div>
+      <div class="meta">
+        <span class="tag">DESIGN 01</span>
+        <h3>Glass Neon</h3>
+        <p>Cyberpunk control room — glassmorphism cards, conic gradients, glowing HUD overlays, animated scan sweeps. Bold, high-contrast. Designed for a dark, focused inspection floor.</p>
+      </div>
+    </a>
+    <a class="card" href="design_2_industrial_minimal.html">
+      <div class="preview p2">⬚</div>
+      <div class="meta">
+        <span class="tag">DESIGN 02</span>
+        <h3>Industrial Minimal</h3>
+        <p>Clean enterprise look — light theme, sidebar navigation, KPI row, timeline activity feed, pastel semantic colors. Print-friendly, accessible, built for operators + QA managers.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="footer">Open either file directly in Chrome. Sizes assume a 1440px viewport.</div>
+</div>
+</body>
+</html>
